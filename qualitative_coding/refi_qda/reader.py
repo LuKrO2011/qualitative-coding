@@ -175,7 +175,7 @@ class REFIQDAReader:
         text = (self.corpus.corpus_dir / corpus_file_path).read_text()
         lines = []
         index = 0
-        for line in text:
+        for line in text.splitlines(keepends=True):
             start = index
             end = index + len(line)
             lines.append((start, end))
