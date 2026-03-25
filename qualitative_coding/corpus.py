@@ -158,7 +158,7 @@ class QCCorpus:
                         for extra in set(params.keys()) - expected:
                             errors.append(f"Unexpected param in editors.{name}: {extra}")
                         for missing in expected - set(params.keys()):
-                            errors.append(f"Missing param in editors.{name}: {extra}")
+                            errors.append(f"Missing param in editors.{name}: {missing}")
                     else:
                         errors.append(f"Expected editors.{name} to be a dict")
             if not settings.get('editor') in {**editors, **settings.get('editors', {})}:
@@ -457,11 +457,11 @@ class QCCorpus:
                 dest_dir.mkdir(parents=True, exist_ok=True)
                 for fn in filenames:
                     source_path = Path(dir_path) / fn
-                    dest_path = (dest_dir / fn).with_suffix(".txt")
+                    dest_path = (dest_dir / fn).with_suffix(".md")
                     imp.import_media(source_path, dest_path)
                     self.register_document(dest_path)
         else:
-            dest_path = (dest_root_dir / source.name).with_suffix(".txt")
+            dest_path = (dest_root_dir / source.name).with_suffix(".md")
             imp.import_media(source, dest_path)
             self.register_document(dest_path)
 

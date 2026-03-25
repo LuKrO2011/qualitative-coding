@@ -52,7 +52,8 @@ class QCTestCase(TestCase):
         (self.testpath / "codes" / "macbeth.txt.cp.codes").write_text(MACBETH_CODES_0_2_3)
 
     def tear_down_qc_project(self):
-        self.tempdir.cleanup()
+        print(f"DEBUG: testpath is {self.testpath}")
+        # self.tempdir.cleanup()
 
     def run_in_testpath(self, command):
         """Runs `command` with testpath as cwd.
@@ -62,7 +63,7 @@ class QCTestCase(TestCase):
             result = run(command, shell=True, cwd=self.testpath, stdout=sys.stdout,
                     stderr=sys.stderr)
         else:
-            result = run(command, shell=True, cwd=self.testpath, capture_output=True, text=True)
+            result = run(command, shell=True, cwd=self.testpath)
         return result
 
     def show_tree(self):

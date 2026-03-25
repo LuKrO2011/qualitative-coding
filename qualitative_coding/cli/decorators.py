@@ -14,6 +14,6 @@ def handle_qc_errors(f):
         try:
             return f(*args, **kwargs)
         except QCError as e:
-            click.echo(error(str(e), preformatted=True), err=True)
+            print(f"DEBUG QC ERROR: {e}")
             sys.exit(1)
     return update_wrapper(command, f)

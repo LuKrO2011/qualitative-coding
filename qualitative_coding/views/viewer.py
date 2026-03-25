@@ -21,7 +21,7 @@ log = structlog.get_logger()
 
 class QCCorpusViewer:
 
-    codes_file = "codes.txt"
+    codes_file = "codes.md"
     coding_session_metadata_file = ".coding_session"
     code_pattern = "^[a-zA-Z0-9_\-]+$"
 
