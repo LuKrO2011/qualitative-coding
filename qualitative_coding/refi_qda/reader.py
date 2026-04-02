@@ -31,7 +31,7 @@ class REFIQDAReader:
             raise QCError(f"Cannot import project to {dest_path}; no such directory.")
         if len(list(self.dest_path.iterdir())) > 0:
             raise QCError("You can only import a project into an empty directory.")
-        QCCorpus.initialize()
+        QCCorpus.initialize(self.dest_path / "settings.yaml")
         self.corpus = QCCorpus(self.dest_path / "settings.yaml")
         (self.dest_path / "source").mkdir()
         (self.dest_path / "source" / "import").mkdir()
@@ -105,19 +105,25 @@ class REFIQDAReader:
 
     def unpack_sources(self, sources):
         self.document_guids = {}
+        used_filenames = set()
         for source in sources:
             if not source.attrib.get('plainTextPath'):
                 log.warning(
-                    f"Skipping import of source {source['name']}; " + 
+                    f"Skipping import of source {source.attrib.get('name', 'unknown')}; " + 
                     "only text sources are supported."
                 )
                 continue
             guid = source.attrib['guid']
             plain_text_path = source.attrib['plainTextPath'].replace("internal://", "")
             qdpx_path = self.dest_path / "source" / "sources" / plain_text_path
-            importable_path = (self.dest_path / "source" / "import" / source.attrib['name']).with_suffix(
-                qdpx_path.suffix
-            )
+            
+            # Ensure unique filename if multiple sources have the same name
+            dest_filename = Path(source.attrib['name']).with_suffix(qdpx_path.suffix).name
+            if dest_filename in used_filenames:
+                dest_filename = f"{guid[:8]}_{dest_filename}"
+            used_filenames.add(dest_filename)
+            
+            importable_path = self.dest_path / "source" / "import" / dest_filename
             log.info(f"Copying {qdpx_path} -> {importable_path}")
             shutil.copyfile(qdpx_path, importable_path)
             self.document_guids[guid] = importable_path.name
@@ -126,7 +132,7 @@ class REFIQDAReader:
             coded_lines = defaultdict(list)
             for selection in source:
                 if selection.tag.endswith("PlainTextSelection"):
-                    match = re.match("line:(\d+)", selection.attrib.get("name", ""))
+                    match = re.match(r"line:(\d+)", selection.attrib.get("name", ""))
                     if match:
                         line = int(match.group(1))
                     else:
@@ -151,6 +157,8 @@ class REFIQDAReader:
     def validate(self, qdpxfile):
         if not Path(qdpxfile).suffix == ".qdpx":
             raise QCError(f"{qdpxfile} must end in .qdpx")
+        if not Path(qdpxfile).exists():
+            raise QCError(f"Import file {qdpxfile} not found.")
         if not zipfile.is_zipfile(qdpxfile):
             raise QCError(f"{qdpxfile} is not a zipfile")
         with zipfile.ZipFile(qdpxfile, 'r', zipfile.ZIP_DEFLATED) as zf:
